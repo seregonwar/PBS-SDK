@@ -1,0 +1,35 @@
+{
+  "schema": 2,
+  "api_version": 1,
+  "id": "dev.example.navigation",
+  "name": "Navigation and Streaming Shortcuts",
+  "version": "1.0.0",
+  "description": "Example UI navigation actions and a credential-free RTMPS ingest template.",
+  "author": "PBS SDK contributors",
+  "permissions": [
+    "ui.actions",
+    "stream.presets"
+  ],
+  "cards": [],
+  "actions": [
+    {
+      "id": "console-settings",
+      "label": "Console settings",
+      "description": "Navigate to the console configuration page.",
+      "target": "open.settings.consoles"
+    },
+    {
+      "id": "stream-settings",
+      "label": "Streaming settings",
+      "description": "Navigate to streaming configuration without starting a stream.",
+      "target": "open.settings.streaming"
+    }
+  ],
+  "presets": [
+    {
+      "id": "generic-rtmps",
+      "name": "Example RTMPS ingest server",
+      "url": "rtmps://ingest.example.com/live"
+    }
+  ]
+}

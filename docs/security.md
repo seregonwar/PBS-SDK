@@ -1,36 +1,88 @@
 # Security model
 
-PBS Studio plugin manifests in schema version 1 are **data only**. They can
-declare cards in the application interface and HTTPS URLs that open when a
-person clicks a card's button.
+PBS Studio's plugin manifest formats **v1 and v2 are data only**. They provide
+bounded user interface declarations. Plugins cannot execute native code,
+scripts, shell commands, arbitrary callbacks, downloaded libraries or
+background requests. The host retains control of every capability.
 
-Version 1 has exactly two permissions:
+## Declared capabilities
 
-- \`ui.cards\`: display the plugin's cards.
-- \`links.open\`: open a card's HTTPS destination on an explicit user action.
+| Permission | Availability | Meaning |
+| --- | --- | --- |
+| ui.cards | v1 and v2 | Display plain-text plugin cards |
+| links.open | v1 and v2 | Open HTTPS links after the user clicks a card |
+| ui.actions | v2 | Navigate to one of four allowlisted settings screens |
+| stream.presets | v2 | Suggest credential-free RTMPS ingest endpoints |
 
-There are no script hooks, process execution, dynamic library loading, plugins
-that run native code, background networking, access to streaming sessions,
-credentials, files, shell commands, or arbitrary application APIs. Those
-capabilities are intentionally absent from the v1 format.
+Nonempty cards require ui.cards and links.open together. Nonempty actions
+require ui.actions. Nonempty presets require stream.presets. Unknown
+capabilities are rejected; declaring a permission does not grant it.
 
-The host must treat all manifest strings as untrusted text. In particular,
-descriptions and titles are plain text, never HTML or markup. URLs must be
-validated before storage and again before opening, be absolute HTTPS URLs,
-and contain no embedded user credentials. The user controls plugin
-installation, enabled state, and removal in the host application.
+## User approval, revocation and updates
 
-The JSON Schema rejects unknown fields, unexpected permission names, and
-unsupported schema versions. The SDK validator adds checks for duplicate JSON
-keys, duplicate card IDs, and malformed or credential-bearing HTTPS links.
-Applications consuming the format should enforce those checks independently
-and must not infer that an untrusted plugin author is endorsed by PBS Studio.
+The host displays plugin identity and requested permissions for review
+during installation. The user controls approval, activation, individual
+permission revocation and plugin removal. Permission grants are host state
+stored separately from the manifest; a plugin cannot assert that it is
+already enabled or approved. Revoked capabilities must not be invoked
+even if they remain declared in the file.
 
-A manifest may link to an external website. Opening that site leaves PBS
-Studio's trust boundary; apply the same caution as with any ordinary web link.
-The HTTPS restriction protects URL schemes but does not endorse external sites
-or establish that their content is safe.
+When a new manifest changes permissions or declared operations, the host
+checks the reviewed data before installation or update. Newly requested
+capabilities require their own grant; an update cannot silently bypass a
+previous revocation. Disabled or removed plugins are not exposed for
+interaction. The host verifies permissions at the moment of use as well.
 
-The schema major version is immutable: breaking changes require a new
-\`schemas/vN/\` directory and manifest \`schema\` value. A plugin's
-\`version\` describes the plugin and does not change schema compatibility.
+Manifest version 2 requires api_version = 1, selecting host API major
+compatibility 1. Unsupported major versions are rejected rather than
+falling back to an unreviewed execution path. Version 1 manifests are
+still supported under their own immutable schema.
+
+## User interface isolation
+
+Manifest strings are untrusted plain text. The application must never
+interpret a plugin title, description, action label or preset name as
+HTML, script or code. Navigation action targets are restricted to:
+
+- open.settings.consoles
+- open.settings.playback
+- open.settings.streaming
+- open.settings.appearance
+
+Actions are user-initiated navigation only. They cannot change settings,
+start capture, start broadcasts, trigger purchases or access account data.
+Card links are absolute HTTPS URLs; userinfo, path traversal escapes and
+other unsafe URL features should be rejected by the host validator.
+
+## Streaming boundaries
+
+RTMPS presets are untrusted *server destination suggestions*. They contain
+only ID, display name and a fixed ingest endpoint URL. The host presents
+and applies them after explicit user action and permission approval.
+A plugin never receives a stream key, token, password, session credential
+or account login. Those values must be managed separately by the host.
+Presets never start or stop a stream by themselves.
+
+The SDK validator rejects URL userinfo, query strings, fragments, path
+traversal, placeholder braces and non-RTMPS schemes for streaming templates.
+Provider-specific application paths are permitted, so the user must review
+the ingest endpoint and authors must ensure it contains no secret material.
+A URL can still identify an external service that is not endorsed by PBS
+Studio. Review destinations before using them.
+
+## Structural validation
+
+The SDK uses JSON Schema draft 2020-12 plus semantic checks to reject
+unknown properties, malformed or duplicate JSON keys, duplicate IDs,
+unsafe URLs, oversized files, control characters and incompatible API
+versions. PBS Studio must enforce its own checks independently because
+an untrusted author need not run the SDK validator.
+
+The manifest size limit is 64 KiB. Plain-text field limits are checked in
+UTF-8 bytes, and identifiers are constrained to lowercase ASCII letters,
+digits, dots and hyphens. The SDK's complete regression suite includes
+adversarial URL, permission and API-version cases.
+
+New capabilities that would require code execution or privileged resources
+need separate designs and independently demonstrable isolation. The v1/v2
+manifest format does not provide them.

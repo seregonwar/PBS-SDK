@@ -23,7 +23,7 @@ jobs:
           cache-dependency-path: requirements-dev.txt
       - name: Install validator
         run: python -m pip install -r requirements-dev.txt
-      - name: Validate published example
-        run: python scripts/validate.py examples/hello-world/plugin.json
-      - name: Run adversarial manifest tests
+      - name: Validate v1 and v2 published examples
+        run: python scripts/validate.py examples/hello-world/plugin.json examples/navigation-and-streaming/plugin.json
+      - name: Run adversarial and compatibility tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
