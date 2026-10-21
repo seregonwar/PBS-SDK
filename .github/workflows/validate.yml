@@ -1,0 +1,29 @@
+name: Validate SDK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout SDK
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install validator
+        run: python -m pip install -r requirements-dev.txt
+      - name: Validate published example
+        run: python scripts/validate.py examples/hello-world/plugin.json
+      - name: Run adversarial manifest tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v

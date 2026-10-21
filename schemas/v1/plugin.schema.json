@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/seregonwar/PBS-SDK/v1.0.0/schemas/v1/plugin.schema.json",
+  "title": "PBS Studio declarative plugin manifest, schema version 1",
+  "description": "Portable declarative data consumed by PBS Studio. It cannot contain or run executable code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "name",
+    "version",
+    "description",
+    "author",
+    "permissions",
+    "cards"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Manifest schema version (independent of plugin version).",
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*(?![\\s\\S])",
+      "description": "Stable lowercase plugin ID, e.g. com.example.tools."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?![\\s\\S])",
+      "description": "Three numeric SemVer components, optionally followed by prerelease/build identifiers."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "permissions": {
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 2,
+      "items": {
+        "type": "string",
+        "enum": [
+          "ui.cards",
+          "links.open"
+        ]
+      },
+      "description": "Only these two declarative capabilities exist in v1."
+    },
+    "cards": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "$ref": "#/$defs/card"
+      }
+    }
+  },
+  "$defs": {
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "description",
+        "url",
+        "button_label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*(?![\\s\\S])"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 2048,
+          "format": "uri",
+          "pattern": "^https://",
+          "description": "Absolute HTTPS URL; username and password are forbidden by SDK validator."
+        },
+        "button_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "cards": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "cards"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "ui.cards"
+                }
+              },
+              {
+                "contains": {
+                  "const": "links.open"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

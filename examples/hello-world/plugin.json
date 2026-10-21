@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "com.example.hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "description": "Adds a link card to the PBS Studio plugin page.",
+  "author": "PBS SDK contributors",
+  "permissions": [
+    "ui.cards",
+    "links.open"
+  ],
+  "cards": [
+    {
+      "id": "welcome",
+      "title": "Welcome to PBS Studio plugins",
+      "description": "Open the public documentation for this declarative plugin format.",
+      "url": "https://github.com/seregonwar/PBS-SDK",
+      "button_label": "Open documentation"
+    }
+  ]
+}
