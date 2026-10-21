@@ -260,11 +260,17 @@ class V2ManifestTests(unittest.TestCase):
                         "v2 schema and CLI must agree on SemVer",
                     )
 
-    def test_rejects_excessively_nested_json_gracefully(self) -> None:
+    def test_rejects_excessively_nested_json_without_crashing(self) -> None:
         document = "[" * 1500 + "0" + "]" * 1500
         errors = validate_manifest_document(document)
         self.assertNotEqual([], errors)
-        self.assertIn("invalid JSON", errors[0])
+        # Python's JSON decoder accepts different nesting depths across
+        # distributions; either a decode error or a non-object-root rejection
+        # is the correct fail-closed behavior.
+        self.assertTrue(
+            "invalid JSON" in errors[0] or "manifest must be a JSON object" in errors[0],
+            errors,
+        )
 
     def test_dangerous_or_secret_bearing_stream_urls_are_denied(self) -> None:
         for url in (
