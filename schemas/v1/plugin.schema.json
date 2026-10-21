@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/seregonwar/PBS-SDK/v1.0.0/schemas/v1/plugin.schema.json",
+  "$id": "https://raw.githubusercontent.com/seregonwar/PBS-SDK/v1.1.1/schemas/v1/plugin.schema.json",
   "title": "PBS Studio declarative plugin manifest, schema version 1",
   "description": "Portable declarative data consumed by PBS Studio. It cannot contain or run executable code.",
   "type": "object",
@@ -35,7 +35,7 @@
     "version": {
       "type": "string",
       "maxLength": 64,
-      "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?![\\s\\S])",
+      "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-(?:(?:0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:(?:0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?![\\s\\S])",
       "description": "Three numeric SemVer components, optionally followed by prerelease/build identifiers."
     },
     "description": {

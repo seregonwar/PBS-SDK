@@ -26,6 +26,12 @@ SCHEMA_PATHS = {
 }
 MAX_MANIFEST_BYTES = 64 * 1024
 HOST_PATTERN = re.compile(r"[A-Za-z0-9]+(?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9]+(?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\Z")
+STRICT_SEMVER_PATTERN = re.compile(
+    r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
+    r"(?:-(?:(?:0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)"
+    r"(?:\.(?:(?:0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
+)
 
 
 def _text_errors(value: str, label: str, byte_limit: int) -> list[str]:
@@ -65,7 +71,7 @@ def load_validator(schema_path: Path = SCHEMA_PATH) -> Draft202012Validator:
     return Draft202012Validator(schema, format_checker=FormatChecker())
 
 
-def _valid_host_port(parts: object) -> bool:
+def _valid_host_port(parts: object, *, strict_labels: bool = False) -> bool:
     try:
         host = parts.hostname
         port = parts.port
@@ -77,6 +83,7 @@ def _valid_host_port(parts: object) -> bool:
             and len(parts.netloc) <= 260
             and len(host) <= 253
             and HOST_PATTERN.fullmatch(host)
+            and (not strict_labels or all(len(label) <= 63 for label in host.split(".")))
             and (
                 raw_port is None
                 or (
@@ -101,11 +108,11 @@ def _valid_url(url: str, *, scheme: str) -> bool:
         return False
     try:
         parts = urlsplit(url)
-        if parts.scheme != scheme or not _valid_host_port(parts):
+        if parts.scheme != scheme or not _valid_host_port(parts, strict_labels=(scheme == "rtmps")):
             return False
         if scheme == "rtmps":
             host = parts.hostname or ""
-            suffixes = (".local", ".lan", ".internal", ".localhost", ".home.arpa")
+            suffixes = (".local", ".lan", ".internal", ".localhost", ".home.arpa", ".invalid")
             try:
                 ipaddress.ip_address(host)
                 return False
@@ -116,7 +123,7 @@ def _valid_url(url: str, *, scheme: str) -> bool:
                 or host.lower().endswith(suffixes)
                 or host.lower() == "localhost"
                 or len(url.encode("utf-8")) > 512
-                or len(parts.path) > 96
+                or len(parts.path[1:]) > 96
             ):
                 return False
             # A template declares an ingest endpoint for explicit user review.
@@ -125,16 +132,16 @@ def _valid_url(url: str, *, scheme: str) -> bool:
                 "?" in url
                 or "#" in url
                 or host.replace(".", "").isdigit()
-                or not re.fullmatch(r"/[A-Za-z0-9_.~/-]{1,95}", parts.path)
+                or not re.fullmatch(r"/[A-Za-z0-9_.~/-]{1,96}", parts.path)
                 or parts.path.endswith("/")
                 or "//" in parts.path
                 or any(segment in {".", ".."} for segment in parts.path.split("/"))
             ):
                 return False
             host_lower = host.lower()
-            if host_lower == "live.twitch.tv" and parts.path != "/app":
+            if host_lower == "live.twitch.tv" and url != "rtmps://live.twitch.tv/app":
                 return False
-            if host_lower in {"a.rtmps.youtube.com", "b.rtmps.youtube.com"} and parts.path != "/live2":
+            if host_lower == "a.rtmps.youtube.com" and url != "rtmps://a.rtmps.youtube.com/live2":
                 return False
         return True
     except ValueError:
@@ -152,7 +159,7 @@ def validate_manifest_document(
         return ["manifest contains invalid Unicode"]
     try:
         manifest = parse_json_document(document)
-    except (ValueError, json.JSONDecodeError) as exc:
+    except (ValueError, json.JSONDecodeError, RecursionError) as exc:
         return [f"invalid JSON: {exc}"]
 
     if not isinstance(manifest, dict):
@@ -188,6 +195,8 @@ def validate_manifest_document(
         ("author", 96),
     ):
         errors.extend(_text_errors(manifest[key], key, max_bytes))
+    if STRICT_SEMVER_PATTERN.fullmatch(manifest["version"]) is None:
+        errors.append("version: invalid SemVer or numeric prerelease with leading zeroes")
     card_ids: set[str] = set()
     for card in manifest.get("cards", []):
         card_id = card["id"]

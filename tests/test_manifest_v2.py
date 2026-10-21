@@ -222,6 +222,50 @@ class V2ManifestTests(unittest.TestCase):
                 variant["presets"][0]["url"] = url
                 self.assertEqual([], self.check(variant))
 
+    def test_rtmps_path_and_dns_label_length_boundaries(self) -> None:
+        # Native parser measures the path *after* its initial slash.
+        # DNS label width is limited to 63 ASCII bytes, per RFC 1035.
+        accepted = (
+            "rtmps://ingest.example.org/" + "a" * 96,
+            "rtmps://" + "a" * 63 + ".example.org/live",
+            "rtmps://ingest.example.org:00001/live",
+        )
+        rejected = (
+            "rtmps://ingest.example.org/" + "a" * 97,
+            "rtmps://" + "a" * 64 + ".example.org/live",
+            "rtmps://ingest.example.org:000001/live",
+            "rtmps://ingest.example.org/segment/..",
+            "rtmps://ingest.example.org/segment/.",
+        )
+        for valid, cases in ((True, accepted), (False, rejected)):
+            for url in cases:
+                with self.subTest(url=url, valid=valid):
+                    variant = copy.deepcopy(self.example)
+                    variant["presets"][0]["url"] = url
+                    self.assertEqual(valid, not self.check(variant))
+
+    def test_numeric_prerelease_requires_no_leading_zero(self) -> None:
+        for valid, versions in (
+            (True, ("1.2.3-0", "1.2.3-10", "1.2.3-alpha.0", "1.2.3+build.01", "1.2.3-alpha01")),
+            (False, ("1.2.3-00", "1.2.3-01", "1.2.3-alpha.002", "1.2.3-001+build.1")),
+        ):
+            for version in versions:
+                with self.subTest(version=version, valid=valid):
+                    variant = copy.deepcopy(self.example)
+                    variant["version"] = version
+                    self.assertEqual(valid, not self.check(variant))
+                    self.assertEqual(
+                        valid,
+                        self.validator_v2.is_valid(variant),
+                        "v2 schema and CLI must agree on SemVer",
+                    )
+
+    def test_rejects_excessively_nested_json_gracefully(self) -> None:
+        document = "[" * 1500 + "0" + "]" * 1500
+        errors = validate_manifest_document(document)
+        self.assertNotEqual([], errors)
+        self.assertIn("invalid JSON", errors[0])
+
     def test_dangerous_or_secret_bearing_stream_urls_are_denied(self) -> None:
         for url in (
             "rtmp://ingest.example.com/live",

@@ -1,0 +1,183 @@
+{
+  "description": "Public API/manifest compatibility fixtures: only declarative metadata, no private implementation.",
+  "cases": [
+    {
+      "name": "v1-existing-example-compatible",
+      "base": "v1",
+      "changes": {},
+      "accept": true
+    },
+    {
+      "name": "v2-existing-example-compatible",
+      "base": "v2",
+      "changes": {},
+      "accept": true
+    },
+    {
+      "name": "v2-no-optional-arrays",
+      "base": "v2",
+      "remove": ["cards", "actions", "presets"],
+      "changes": {"permissions": []},
+      "accept": true
+    },
+    {
+      "name": "v2-supported-provider-path",
+      "base": "v2",
+      "changes": {
+        "presets": [
+          {
+            "id": "custom-ingest",
+            "name": "Public RTMPS ingest",
+            "url": "rtmps://ingest.example.org/ingest/custom"
+          }
+        ]
+      },
+      "accept": true
+    },
+    {
+      "name": "v2-supported-youtube-canonical",
+      "base": "v2",
+      "changes": {
+        "presets": [
+          {
+            "id": "youtube-ingest",
+            "name": "YouTube RTMPS ingest",
+            "url": "rtmps://a.rtmps.youtube.com/live2"
+          }
+        ]
+      },
+      "accept": true
+    },
+    {
+      "name": "v2-reject-newer-api-major",
+      "base": "v2",
+      "changes": {"api_version": 2},
+      "accept": false
+    },
+    {
+      "name": "v1-reject-v2-api-extension",
+      "base": "v1",
+      "changes": {"api_version": 1},
+      "accept": false
+    },
+    {
+      "name": "v2-reject-leading-zero-prerelease",
+      "base": "v2",
+      "changes": {"version": "1.2.3-01"},
+      "accept": false
+    },
+    {
+      "name": "v1-reject-leading-zero-prerelease",
+      "base": "v1",
+      "changes": {"version": "1.2.3-beta.002"},
+      "accept": false
+    },
+    {
+      "name": "v2-reject-reserved-invalid-domain",
+      "base": "v2",
+      "changes": {
+        "presets": [
+          {
+            "id": "invalid-host",
+            "name": "Reserved host",
+            "url": "rtmps://fake.invalid/live"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v2-reject-overlong-dns-label",
+      "base": "v2",
+      "changes": {
+        "presets": [
+          {
+            "id": "label64",
+            "name": "DNS label too long",
+            "url": "rtmps://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.example.org/live"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v2-reject-twitch-port-override",
+      "base": "v2",
+      "changes": {
+        "presets": [
+          {
+            "id": "twitch-extra-port",
+            "name": "Twitch alternate port",
+            "url": "rtmps://live.twitch.tv:443/app"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v2-reject-youtube-case-override",
+      "base": "v2",
+      "changes": {
+        "presets": [
+          {
+            "id": "youtube-case",
+            "name": "Noncanonical host",
+            "url": "rtmps://A.RTMPS.YOUTUBE.COM/live2"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v2-reject-rtmps-traversal",
+      "base": "v2",
+      "changes": {
+        "presets": [
+          {
+            "id": "path-traversal",
+            "name": "Untrusted path",
+            "url": "rtmps://ingest.example.org/ingest/../live"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v2-reject-rtmps-escaped-token",
+      "base": "v2",
+      "changes": {
+        "presets": [
+          {
+            "id": "encoded-placeholder",
+            "name": "Untrusted encoded path",
+            "url": "rtmps://ingest.example.org/ingest%2Fsecret"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v2-reject-arbitrary-navigation",
+      "base": "v2",
+      "changes": {
+        "actions": [
+          {
+            "id": "credential-action",
+            "label": "Open credentials",
+            "description": "Unsupported destination",
+            "target": "open.settings.credentials"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v2-reject-capability-escalation",
+      "base": "v2",
+      "changes": {
+        "permissions": ["ui.actions", "stream.presets", "filesystem.read"]
+      },
+      "accept": false
+    }
+  ]
+}

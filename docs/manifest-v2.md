@@ -82,8 +82,10 @@ set. Paths may include provider application subpaths, such as
 or use the dot/parent-directory segments. URLs are capped at 512 bytes.
 Private/local-use DNS suffixes, IP literal hosts, userinfo, query strings,
 fragments, backslashes, non-ASCII URLs and placeholders with braces are
-rejected. Twitch's official ingest host must use /app; YouTube's official
-RTMPS hosts must use /live2.
+rejected. The official Twitch host is accepted only as the exact URL
+rtmps://live.twitch.tv/app, and the canonical YouTube ingest host only as
+rtmps://a.rtmps.youtube.com/live2. Alternate port or letter case on those
+two known hosts is rejected.
 
 The URL is presented to the user for review before applying it. The format
 cannot determine from arbitrary provider path text whether an author placed
@@ -123,3 +125,6 @@ or run **python -m unittest discover -s tests -p test_*.py -v**.
 The CLI selects the schema by version, checks compatibility with API major
 1, validates each manifest and exits with a nonzero status if any file is
 invalid.
+
+See [host integration and race test guidance](host-integration.md) for
+review-to-install integrity checks and concurrent operations.

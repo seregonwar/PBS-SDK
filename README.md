@@ -37,6 +37,7 @@ revocation and whether each plugin is enabled.
 - [V1 versioned JSON schema](schemas/v1/plugin.schema.json)
 - [V1 card example](examples/hello-world/plugin.json)
 - [Permissions and security model](docs/security.md)
+- [Host integration and filesystem race test guidance](docs/host-integration.md)
 
 Manifest schema versions are distinct from the version of a plugin. V2
 explicitly requires API major compatibility 1, and v1 files remain valid

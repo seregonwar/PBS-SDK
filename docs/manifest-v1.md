@@ -48,6 +48,9 @@ should reject unsupported values, invalid JSON, and unknown fields. The plugin
 `id` remains stable through upgrades; `version` changes when plugin
 content changes. A future incompatible schema requires a new manifest schema
 number and its own versioned specification.
+Numeric prerelease identifiers with leading zeros (for example,
+1.2.3-beta.01) are invalid SemVer and are rejected by both the current SDK
+validator and the host parser. Historical tagged schemas remain available.
 
 SDK validation:
 
