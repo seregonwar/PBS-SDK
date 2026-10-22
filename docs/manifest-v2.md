@@ -3,6 +3,9 @@
 PBS Studio plugin manifests remain **declarative JSON**. Schema v2 adds
 settings navigation actions and credential-free RTMPS ingest templates.
 It does not provide extension code, scripts or access to credentials.
+The host supports plugins on Windows, macOS and Linux only; Android and
+iOS/iPadOS builds disable plugin support at compile time. The API major and
+schema compatibility rules below apply to the desktop host.
 
 See the [working v2 example](../examples/navigation-and-streaming/plugin.json)
 and the [versioned v2 JSON Schema](../schemas/v2/plugin.schema.json).

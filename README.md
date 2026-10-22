@@ -4,6 +4,12 @@ The public **PBS Studio** declarative plugin SDK. This repository contains
 versioned JSON schemas, working examples, documentation, a validator, and
 adversarial compatibility tests.
 
+**Availability:** PBS Studio accepts plugins on **desktop only** (Windows,
+macOS and Linux). Android, iOS and iPadOS builds deliberately exclude the
+plugin manager and its UI. The host's `PBS_ENABLE_PLUGINS` build flag defaults
+to ON on desktop and OFF on mobile; mobile configurations reject enabling it.
+This platform restriction does not change the v1/v2 manifest schemas or API.
+
 **Current format: v2 (API major 1)**, with continued support for legacy v1.
 Plugins can display cards, open HTTPS links, navigate to approved settings
 screens and offer credential-free RTMPS ingest server templates. The SDK does
