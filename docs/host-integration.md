@@ -62,6 +62,10 @@ arbitrary sleeps.
 | Reuse v1 manifest on a v2 host | Valid original cards and links remain supported |
 | Submit schema 2 with an unknown API major | Reject incompatible API; no implicit downgrade |
 | Submit RTMPS key, traversal or encoded-separator URL | Reject invalid preset; no automatic streaming |
+| Request ui.notifications or notification fields in v1/v2 | Reject as unsupported schema capability |
+| Submit v3 notifications with unknown event or executable/url fields | Reject invalid declaration, with no toast or callback |
+| Send host transition after notification permission revocation | No toast from the revoked plugin |
+| Restore an already-active connection on startup | No artificial connected notification |
 
 Inspect both method results and final on-disk state after each run. A
 successful JSON validation proves schema acceptance, not cross-process
@@ -78,6 +82,12 @@ semantic URL constraints. The v1 manifest fields remain unchanged.
 Latest v1 and v2 schemas reject numeric SemVer prerelease components
 with leading zeros, matching the host parser. Historical release tags
 remain available and unchanged.
+
+V3 extends the same host API major (1) with opt-in static in-app toast rules
+for four event transitions. The host must enforce event allowlists and grants
+at dispatch, render text literally and never pass session payloads to plugins.
+The number of visible toasts should remain bounded across all installed
+plugins, not merely per-manifest.
 
 Before releasing new SDK metadata, run public fixture/validator tests and
 both examples in CI, and publish documentation, manifests and schemas

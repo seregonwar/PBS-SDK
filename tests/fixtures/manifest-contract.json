@@ -178,6 +178,134 @@
         "permissions": ["ui.actions", "stream.presets", "filesystem.read"]
       },
       "accept": false
+    },
+    {
+      "name": "v3-notification-example-compatible",
+      "base": "v3",
+      "changes": {},
+      "accept": true
+    },
+    {
+      "name": "v3-no-optional-arrays",
+      "base": "v3",
+      "remove": ["notifications"],
+      "changes": {"permissions": []},
+      "accept": true
+    },
+    {
+      "name": "v3-static-dollar-braces-render-as-text",
+      "base": "v3",
+      "changes": {
+        "notifications": [
+          {
+            "id": "literal",
+            "event": "broadcast.stopped",
+            "title": "{console} $value",
+            "message": "Static %s text only"
+          }
+        ]
+      },
+      "accept": true
+    },
+    {
+      "name": "v3-reject-newer-api-major",
+      "base": "v3",
+      "changes": {"api_version": 2},
+      "accept": false
+    },
+    {
+      "name": "v3-reject-unknown-event",
+      "base": "v3",
+      "changes": {
+        "notifications": [
+          {
+            "id": "invalid-event",
+            "event": "app.started",
+            "title": "Invalid",
+            "message": "Startup hooks are not available"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v3-reject-missing-notification-permission",
+      "base": "v3",
+      "changes": {"permissions": []},
+      "accept": false
+    },
+    {
+      "name": "v3-reject-duplicate-notification-id",
+      "base": "v3",
+      "changes": {
+        "notifications": [
+          {"id": "same", "event": "console.connected", "title": "Connected", "message": "Connection established"},
+          {"id": "same", "event": "broadcast.started", "title": "Broadcast", "message": "Broadcast active"}
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v3-reject-unexpected-notification-field",
+      "base": "v3",
+      "changes": {
+        "notifications": [
+          {
+            "id": "webhook",
+            "event": "console.connected",
+            "title": "No callbacks",
+            "message": "Plain text only",
+            "url": "https://example.org/hook"
+          }
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v3-reject-empty-notification-message",
+      "base": "v3",
+      "changes": {
+        "notifications": [
+          {"id": "empty", "event": "console.connected", "title": "Empty", "message": ""}
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v3-reject-ninth-notification",
+      "base": "v3",
+      "changes": {
+        "notifications": [
+          {"id": "n0", "event": "console.connected", "title": "Test", "message": "Message"},
+          {"id": "n1", "event": "console.connected", "title": "Test", "message": "Message"},
+          {"id": "n2", "event": "console.connected", "title": "Test", "message": "Message"},
+          {"id": "n3", "event": "console.connected", "title": "Test", "message": "Message"},
+          {"id": "n4", "event": "console.connected", "title": "Test", "message": "Message"},
+          {"id": "n5", "event": "console.connected", "title": "Test", "message": "Message"},
+          {"id": "n6", "event": "console.connected", "title": "Test", "message": "Message"},
+          {"id": "n7", "event": "console.connected", "title": "Test", "message": "Message"},
+          {"id": "n8", "event": "console.connected", "title": "Test", "message": "Message"}
+        ]
+      },
+      "accept": false
+    },
+    {
+      "name": "v2-reject-v3-notification-field",
+      "base": "v2",
+      "changes": {"notifications": []},
+      "accept": false
+    },
+    {
+      "name": "v2-reject-v3-notification-permission",
+      "base": "v2",
+      "changes": {"permissions": ["ui.actions", "stream.presets", "ui.notifications"]},
+      "accept": false
+    },
+    {
+      "name": "v3-reject-unknown-permission",
+      "base": "v3",
+      "changes": {"permissions": ["ui.notifications", "shell.execute"]},
+      "accept": false
     }
   ]
 }

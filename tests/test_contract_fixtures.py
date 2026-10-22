@@ -21,10 +21,12 @@ class ContractFixtures(unittest.TestCase):
         cls.bases = {
             "v1": json.loads((REPO / "examples/hello-world/plugin.json").read_text(encoding="utf-8")),
             "v2": json.loads((REPO / "examples/navigation-and-streaming/plugin.json").read_text(encoding="utf-8")),
+            "v3": json.loads((REPO / "examples/event-notifications/plugin.json").read_text(encoding="utf-8")),
         }
         cls.validators = {
             1: load_validator(REPO / "schemas/v1/plugin.schema.json"),
             2: load_validator(REPO / "schemas/v2/plugin.schema.json"),
+            3: load_validator(REPO / "schemas/v3/plugin.schema.json"),
         }
 
     def test_all_fixture_cases_match_expected_acceptance(self) -> None:
@@ -50,6 +52,15 @@ class ContractFixtures(unittest.TestCase):
                     "v1-reject-leading-zero-prerelease",
                     "v2-reject-arbitrary-navigation",
                     "v2-reject-capability-escalation",
+                    "v3-reject-newer-api-major",
+                    "v3-reject-unknown-event",
+                    "v3-reject-missing-notification-permission",
+                    "v3-reject-unexpected-notification-field",
+                    "v3-reject-empty-notification-message",
+                    "v3-reject-ninth-notification",
+                    "v2-reject-v3-notification-field",
+                    "v2-reject-v3-notification-permission",
+                    "v3-reject-unknown-permission",
                 }:
                     self.assertTrue(schema_errors, "schema must reject structural/API violations")
                 # Semantic URL constraints such as DNS-label length and

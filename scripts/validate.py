@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate PBS Studio schema-v1 and schema-v2 declarative plugin manifests.
+"""Validate PBS Studio schema-v1/v2/v3 declarative plugin manifests.
 
 Requires the development dependency from requirements-dev.txt.
 This validator checks JSON Schema plus semantic invariants that a schema alone
@@ -23,6 +23,7 @@ SCHEMA_PATH = REPO_ROOT / "schemas" / "v1" / "plugin.schema.json"
 SCHEMA_PATHS = {
     1: SCHEMA_PATH,
     2: REPO_ROOT / "schemas" / "v2" / "plugin.schema.json",
+    3: REPO_ROOT / "schemas" / "v3" / "plugin.schema.json",
 }
 MAX_MANIFEST_BYTES = 64 * 1024
 HOST_PATTERN = re.compile(r"[A-Za-z0-9]+(?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9]+(?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\Z")
@@ -170,11 +171,11 @@ def validate_manifest_document(
         if type(schema_version) is not int or schema_version not in SCHEMA_PATHS:
             return [f"unsupported manifest schema: {schema_version!r}"]
         validator = load_validator(SCHEMA_PATHS[schema_version])
-        if schema_version == 2 and (
+        if schema_version >= 2 and (
             type(manifest.get("api_version")) is not int
             or manifest["api_version"] != 1
         ):
-            return ["incompatible API version: v2 requires api_version 1 (major compatibility 1)"]
+            return [f"incompatible API version: v{schema_version} requires api_version 1 (major compatibility 1)"]
 
     schema_errors = sorted(
         validator.iter_errors(manifest),
@@ -216,7 +217,7 @@ def validate_manifest_document(
         if not _valid_url(url, scheme="https"):
             errors.append(f"invalid HTTPS card URL for {card_id!r}")
 
-    if manifest["schema"] == 2:
+    if manifest["schema"] >= 2:
         action_ids: set[str] = set()
         for action in manifest.get("actions", []):
             action_id = action["id"]
@@ -246,11 +247,30 @@ def validate_manifest_document(
             if not _valid_url(preset["url"], scheme="rtmps"):
                 errors.append(f"invalid RTMPS ingest template for {preset_id!r}")
 
+    if manifest["schema"] >= 3:
+        notification_ids: set[str] = set()
+        for notification in manifest.get("notifications", []):
+            notification_id = notification["id"]
+            for key, max_bytes in (
+                ("id", 64),
+                ("event", 32),
+                ("title", 96),
+                ("message", 240),
+            ):
+                errors.extend(
+                    _text_errors(
+                        notification[key], f"notification {notification_id!r}.{key}", max_bytes
+                    )
+                )
+            if notification_id in notification_ids:
+                errors.append(f"duplicate notification id: {notification_id!r}")
+            notification_ids.add(notification_id)
+
     return errors
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate declarative PBS Studio v1/v2 plugins")
+    parser = argparse.ArgumentParser(description="Validate declarative PBS Studio v1/v2/v3 plugins")
     parser.add_argument("files", nargs="+", type=Path, help="plugin manifest JSON files")
     args = parser.parse_args(argv)
 

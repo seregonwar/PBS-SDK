@@ -66,7 +66,7 @@ class V2ManifestTests(unittest.TestCase):
                 self.assertTrue(any("API version" in error for error in errors), errors)
 
     def test_unknown_or_future_manifest_schemas_are_rejected(self) -> None:
-        for schema in (0, 3, 100, "2", 2.0, True, None):
+        for schema in (0, 4, 100, "2", 2.0, True, None):
             with self.subTest(schema=schema):
                 variant = copy.deepcopy(self.example)
                 variant["schema"] = schema

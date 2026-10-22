@@ -1,0 +1,38 @@
+{
+  "schema": 3,
+  "api_version": 1,
+  "id": "dev.example.event-notifications",
+  "name": "Event Notification Example",
+  "version": "1.0.0",
+  "description": "Demonstrates static in-app toasts for console and broadcast transitions.",
+  "author": "PBS SDK contributors",
+  "permissions": [
+    "ui.notifications"
+  ],
+  "notifications": [
+    {
+      "id": "console-online",
+      "event": "console.connected",
+      "title": "Console connected",
+      "message": "A console connection has been established."
+    },
+    {
+      "id": "console-offline",
+      "event": "console.disconnected",
+      "title": "Console disconnected",
+      "message": "The console connection ended."
+    },
+    {
+      "id": "stream-online",
+      "event": "broadcast.started",
+      "title": "Broadcast started",
+      "message": "The broadcast is now active."
+    },
+    {
+      "id": "stream-offline",
+      "event": "broadcast.stopped",
+      "title": "Broadcast stopped",
+      "message": "The broadcast has ended."
+    }
+  ]
+}
