@@ -59,6 +59,14 @@ plugin reload or restoration of an already-existing connection/broadcast.
 Plugins cannot trigger events, receive contextual information or observe
 arbitrary event names.
 
+Events reflect **aggregate host state**, not individual devices or sessions:
+console.connected fires when the host changes from no connected consoles to
+at least one; console.disconnected when the last connected console goes
+away. Broadcast events similarly represent the host changing from no
+live broadcast to at least one live broadcast, or back to none. Changing
+which console is connected while at least one remains connected does not
+trigger another aggregate connection event.
+
 Notification title and message are **static literal text**. The host does
 not interpolate variables or placeholders: brace-delimited names,
 percent tokens and dollar-prefixed expressions are displayed as ordinary

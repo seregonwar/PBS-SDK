@@ -79,6 +79,8 @@ plugin. Only console.connected, console.disconnected, broadcast.started
 and broadcast.stopped may trigger a rule. The host presents an in-app toast
 only for an actual state transition. It must not dispatch startup/reload
 notifications or derive dynamic titles/messages from session data.
+The transitions represent aggregate host state (any console connected,
+any broadcast live), not per-console or per-session telemetry.
 Permission ui.notifications is grant-controlled independently of cards,
 links, actions and stream presets. Revocation or disablement denies display.
 
