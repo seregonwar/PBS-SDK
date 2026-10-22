@@ -1,8 +1,8 @@
 # PBS SDK
 
 The public **PBS Studio** declarative plugin SDK. This repository contains
-versioned JSON schemas, working examples, documentation, a validator, and
-adversarial compatibility tests.
+versioned JSON schemas, a **code-first Python authoring toolkit**, working
+examples, documentation, a validator, and adversarial compatibility tests.
 
 **Availability:** PBS Studio accepts plugins on **desktop only** (Windows,
 macOS and Linux). Android, iOS and iPadOS builds deliberately exclude the
@@ -17,6 +17,26 @@ in-app event toasts. The SDK does not execute scripts, native libraries or
 downloaded code.
 
 ## Create a plugin
+
+### Create a plugin in Python
+
+The [Creator Workflow Companion](examples/creator-workflow/README.md) is a
+tested code-first source project. Python selects Twitch/YouTube workflow
+profiles, builds RTMPS templates, adds operator cards and settings shortcuts,
+and declares notifications for console/broadcast transitions.
+
+```sh
+python -m pip install -r requirements-dev.txt
+python examples/creator-workflow/build.py --profile production
+python scripts/validate.py examples/creator-workflow/dist/plugin.json
+```
+
+Your own project can use `from pbs_sdk import Plugin, HostEvent, SettingsPage`.
+See the [authoring guide](docs/python-authoring.md). **Python runs only on
+the developer's computer at build time**; PBS Studio imports the validated
+JSON output but does not run scripts or native code.
+
+### Author a manifest directly
 
 1. Start with the [v3 event notifications example](examples/event-notifications/plugin.json),
    [v2 navigation and streaming example](examples/navigation-and-streaming/plugin.json)
@@ -62,9 +82,9 @@ Tests require Python 3.10+:
     python -m pip install -r requirements-dev.txt
     python -m unittest discover -s tests -p 'test_*.py' -v
 
-GitHub Actions validates all three published examples and runs adversarial,
-permission, schema compatibility and unsupported API-version tests on each
-pull request. No private PBS Studio implementation or account secrets are
+GitHub Actions validates the three declarative examples, compiles the Python
+creator example, and runs adversarial, permission and compatibility tests.
+No private PBS Studio implementation or account secrets are
 distributed by this repository.
 
 Released under the [MIT License](LICENSE).

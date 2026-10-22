@@ -25,5 +25,9 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
       - name: Validate v1, v2 and v3 published examples
         run: python scripts/validate.py examples/hello-world/plugin.json examples/navigation-and-streaming/plugin.json examples/event-notifications/plugin.json
+      - name: Build and validate code-first Creator Workflow
+        run: |
+          python examples/creator-workflow/build.py --profile production
+          python scripts/validate.py examples/creator-workflow/dist/plugin.json
       - name: Run adversarial and compatibility tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
