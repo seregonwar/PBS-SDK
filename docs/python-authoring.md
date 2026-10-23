@@ -67,7 +67,7 @@ and a CLI roundtrip. The private PBS Studio development tree also includes a
 exercises the actual C++ manager's review, installation, persistence, event
 dispatch, revocation, disable and uninstall paths.
 
-On a desktop build with plugins enabled, open **Settings > Plugins > Review
+On a desktop build with plugins enabled, open **Home > Plugins > Review
 manifest**, select the generated `dist/plugin.json`, review the permissions
 and approve installation. Changing source alone does not modify an installed
 plugin; rebuild and explicitly approve a versioned update. Desktop only;

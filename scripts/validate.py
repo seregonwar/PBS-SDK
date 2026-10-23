@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate PBS Studio schema-v1/v2/v3 declarative plugin manifests.
+"""Validate PBS Studio schema-v1 through v4 declarative plugin manifests.
 
 Requires the development dependency from requirements-dev.txt.
 This validator checks JSON Schema plus semantic invariants that a schema alone
@@ -24,6 +24,7 @@ SCHEMA_PATHS = {
     1: SCHEMA_PATH,
     2: REPO_ROOT / "schemas" / "v2" / "plugin.schema.json",
     3: REPO_ROOT / "schemas" / "v3" / "plugin.schema.json",
+    4: REPO_ROOT / "schemas" / "v4" / "plugin.schema.json",
 }
 MAX_MANIFEST_BYTES = 64 * 1024
 HOST_PATTERN = re.compile(r"[A-Za-z0-9]+(?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9]+(?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\Z")
@@ -266,11 +267,20 @@ def validate_manifest_document(
                 errors.append(f"duplicate notification id: {notification_id!r}")
             notification_ids.add(notification_id)
 
+    if manifest["schema"] >= 4:
+        panel_ids: set[str] = set()
+        for panel in manifest.get("panels", []):
+            for key, limit in (("id", 64), ("title", 96), ("description", 512)):
+                errors.extend(_text_errors(panel[key], f"panel.{key}", limit))
+            if panel["id"] in panel_ids:
+                errors.append(f"duplicate panel id: {panel['id']!r}")
+            panel_ids.add(panel["id"])
+
     return errors
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate declarative PBS Studio v1/v2/v3 plugins")
+    parser = argparse.ArgumentParser(description="Validate declarative PBS Studio v1 through v4 plugins")
     parser.add_argument("files", nargs="+", type=Path, help="plugin manifest JSON files")
     args = parser.parse_args(argv)
 

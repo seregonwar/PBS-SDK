@@ -7,6 +7,7 @@ or load source files; only the validated JSON manifest crosses into the host.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 from enum import Enum
 import json
 import os
@@ -30,6 +31,19 @@ class SettingsPage(str, Enum):
     APPEARANCE = "open.settings.appearance"
 
 
+class Metric(str, Enum):
+    CONSOLE_CONNECTED = "console.connected"
+    STREAM_FRAMES = "stream.frames"
+    STREAM_RESOLUTION = "stream.resolution"
+    STREAM_DECODER = "stream.decoder"
+    STREAM_COLOR = "stream.color"
+    ENHANCEMENT_MS = "stream.enhancement_ms"
+    BROADCAST_ACTIVE = "broadcast.active"
+    BROADCAST_FRAMES = "broadcast.frames"
+    BROADCAST_DROPPED = "broadcast.dropped"
+    GRAPHICS_DEVICE = "graphics.device"
+
+
 class ManifestError(ValueError):
     """Code-authored manifest failed the exact public host-contract validator."""
 
@@ -40,7 +54,7 @@ class ManifestError(ValueError):
 
 @dataclass
 class Plugin:
-    """Typed builder for *data-only* v3 capabilities.
+    """Typed builder for data-only v3/v4 capabilities.
 
     Calls to this object only construct declarations. Their Python bodies are
     never shipped or called by PBS Studio. Each feature has its own permission
@@ -56,6 +70,14 @@ class Plugin:
     _actions: list[dict[str, str]] = field(default_factory=list, repr=False)
     _presets: list[dict[str, str]] = field(default_factory=list, repr=False)
     _notifications: list[dict[str, str]] = field(default_factory=list, repr=False)
+    _panels: list[dict] = field(default_factory=list, repr=False)
+
+    def panel(self, id: str, *, title: str, description: str,
+              metrics: list[Metric]) -> Plugin:
+        """Declare a live host-rendered panel; no polling or script is shipped."""
+        self._panels.append(dict(id=id, title=title, description=description,
+                                 metrics=[Metric(metric).value for metric in metrics]))
+        return self
 
     def card(self, id: str, *, title: str, description: str,
              button_label: str, url: str) -> Plugin:
@@ -89,17 +111,20 @@ class Plugin:
             permissions.append("stream.presets")
         if self._notifications:
             permissions.append("ui.notifications")
+        if self._panels:
+            permissions.append("tools.panels")
         result: dict = {
-            "schema": 3, "api_version": 1, "id": self.id,
+            "schema": 4 if self._panels else 3, "api_version": 1, "id": self.id,
             "name": self.name, "version": self.version,
             "description": self.description, "author": self.author,
             "permissions": permissions,
         }
         for key, items in (("cards", self._cards), ("actions", self._actions),
-                           ("presets", self._presets), ("notifications", self._notifications)):
+                           ("presets", self._presets), ("notifications", self._notifications),
+                           ("panels", self._panels)):
             if items:
                 # Do not return aliases to the builder's internal lists.
-                result[key] = [dict(item) for item in items]
+                result[key] = deepcopy(items)
         return result
 
     def render(self) -> str:
@@ -133,4 +158,4 @@ class Plugin:
         return path
 
 
-__all__ = ["Plugin", "HostEvent", "SettingsPage", "ManifestError"]
+__all__ = ["Plugin", "HostEvent", "SettingsPage", "Metric", "ManifestError"]
