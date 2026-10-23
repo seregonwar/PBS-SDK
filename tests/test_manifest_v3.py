@@ -49,7 +49,7 @@ class V3NotificationsTests(unittest.TestCase):
         self.assertNotEqual([], self.check(variant))
 
     def test_unknown_schema_and_executable_root_fields_rejected(self) -> None:
-        for changes in ({"schema": 4}, {"schema": "3"}, {"script": "evil.js"},
+        for changes in ({"schema": 5}, {"schema": "3"}, {"script": "evil.js"},
                         {"on_event": "run"}, {"api": {"major": 2}}):
             with self.subTest(changes=changes):
                 variant = copy.deepcopy(self.example)

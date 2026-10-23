@@ -1,0 +1,38 @@
+{
+  "schema": 4,
+  "api_version": 1,
+  "id": "dev.pbs.stream-inspector",
+  "name": "Stream Inspector",
+  "version": "1.0.0",
+  "description": "A diagnostics workspace inspired by memory debugging tools, adapted to PBS stream and GPU telemetry.",
+  "author": "PBS Studio",
+  "permissions": [
+    "tools.panels"
+  ],
+  "panels": [
+    {
+      "id": "stream",
+      "title": "Stream and GPU",
+      "description": "Live host measurements for the selected console.",
+      "metrics": [
+        "console.connected",
+        "stream.frames",
+        "stream.resolution",
+        "stream.decoder",
+        "stream.color",
+        "stream.enhancement_ms",
+        "graphics.device"
+      ]
+    },
+    {
+      "id": "broadcast",
+      "title": "Broadcast health",
+      "description": "Delivery counters for the active broadcast.",
+      "metrics": [
+        "broadcast.active",
+        "broadcast.frames",
+        "broadcast.dropped"
+      ]
+    }
+  ]
+}

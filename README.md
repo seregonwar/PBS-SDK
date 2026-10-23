@@ -10,7 +10,11 @@ plugin manager and its UI. The host's `PBS_ENABLE_PLUGINS` build flag defaults
 to ON on desktop and OFF on mobile; mobile configurations reject enabling it.
 This platform restriction does not change the v1/v2 manifest schemas or API.
 
-**Current format: v3 (API major 1)**, with continued support for v1 and v2.
+**Current format: v4 (API major 1)**, with continued support for v1, v2 and v3.
+V4 adds a dedicated tools workspace with live stream and GPU diagnostic panels,
+available from Home and the stream overlay. See the
+[v4 specification](docs/manifest-v4.md) and
+[Stream Inspector example](examples/stream-inspector/plugin.json).
 Plugins can display cards, open HTTPS links, navigate to approved settings
 screens, offer credential-free RTMPS ingest templates and declare static
 in-app event toasts. The SDK does not execute scripts, native libraries or
