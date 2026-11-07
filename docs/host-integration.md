@@ -6,10 +6,14 @@ properties, not an attestation of any specific host implementation.
 
 ## Review, installation and updates
 
-Treat both manifest versions as untrusted data. Read no more than 64 KiB
-from a regular UTF-8 JSON file, validate its exact schema and present its
-permissions and intended operations for explicit user approval. The
-manifest cannot supply an executable entrypoint, script or generic API call.
+Treat every manifest version as untrusted data. Read no more than 48 KiB of
+manifest body (v5 adds its script on top) from a regular UTF-8 JSON file,
+validate its exact schema and present its permissions and intended operations
+for explicit user approval. No manifest can supply a native entrypoint, a
+library path or a generic host call. A v5 manifest may supply **Lua source
+text**; run it only inside a sandbox that exposes the reviewed `pbs.*` API and
+nothing else, with permission checks, an instruction budget, a memory cap, a
+settings-store cap and a widget budget.
 
 1. Preview exact source bytes and their SHA-256 digest. Open the import file
    safely again at installation and reject a digest mismatch.

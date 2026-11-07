@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate PBS Studio schema-v1 through v4 declarative plugin manifests.
+"""Validate PBS Studio schema-v1 through v5 plugin manifests.
 
 Requires the development dependency from requirements-dev.txt.
 This validator checks JSON Schema plus semantic invariants that a schema alone
@@ -25,6 +25,7 @@ SCHEMA_PATHS = {
     2: REPO_ROOT / "schemas" / "v2" / "plugin.schema.json",
     3: REPO_ROOT / "schemas" / "v3" / "plugin.schema.json",
     4: REPO_ROOT / "schemas" / "v4" / "plugin.schema.json",
+    5: REPO_ROOT / "schemas" / "v5" / "plugin.schema.json",
 }
 MAX_MANIFEST_BYTES = 64 * 1024
 HOST_PATTERN = re.compile(r"[A-Za-z0-9]+(?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9]+(?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\Z")
@@ -172,11 +173,16 @@ def validate_manifest_document(
         if type(schema_version) is not int or schema_version not in SCHEMA_PATHS:
             return [f"unsupported manifest schema: {schema_version!r}"]
         validator = load_validator(SCHEMA_PATHS[schema_version])
+        # Schemas 2-4 speak host API 1; the v5 script runtime is API major 2.
+        required_api = 2 if schema_version >= 5 else 1
         if schema_version >= 2 and (
             type(manifest.get("api_version")) is not int
-            or manifest["api_version"] != 1
+            or manifest["api_version"] != required_api
         ):
-            return [f"incompatible API version: v{schema_version} requires api_version 1 (major compatibility 1)"]
+            return [
+                f"incompatible API version: v{schema_version} requires "
+                f"api_version {required_api} (major compatibility {required_api})"
+            ]
 
     schema_errors = sorted(
         validator.iter_errors(manifest),
@@ -276,11 +282,36 @@ def validate_manifest_document(
                 errors.append(f"duplicate panel id: {panel['id']!r}")
             panel_ids.add(panel["id"])
 
+    if manifest["schema"] >= 5:
+        runtime = manifest["runtime"]
+        source = runtime["source"]
+        if "runtime.script" not in manifest["permissions"]:
+            errors.append("runtime.script permission is required for an embedded script")
+        if runtime["language"] != "lua":
+            errors.append("runtime.language must be 'lua'")
+        if "api" in runtime and runtime["api"] != 2:
+            errors.append("runtime.api must be 2")
+        try:
+            script_bytes = len(source.encode("utf-8"))
+        except UnicodeEncodeError:
+            errors.append("runtime.source: invalid Unicode surrogate")
+            script_bytes = 0
+        if script_bytes == 0:
+            errors.append("runtime.source: the script is empty")
+        elif script_bytes > 48 * 1024:
+            errors.append("runtime.source: exceeds 48 KiB")
+        if "\x00" in source:
+            errors.append("runtime.source: NUL byte")
+        elif any(ord(character) < 32 and character not in "\n\r\t" for character in source):
+            errors.append("runtime.source: forbidden control character")
+
     return errors
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate declarative PBS Studio v1 through v4 plugins")
+    parser = argparse.ArgumentParser(
+        description="Validate PBS Studio v1 through v5 plugin manifests"
+    )
     parser.add_argument("files", nargs="+", type=Path, help="plugin manifest JSON files")
     args = parser.parse_args(argv)
 

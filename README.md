@@ -10,15 +10,19 @@ plugin manager and its UI. The host's `PBS_ENABLE_PLUGINS` build flag defaults
 to ON on desktop and OFF on mobile; mobile configurations reject enabling it.
 This platform restriction does not change the v1/v2 manifest schemas or API.
 
-**Current format: v4 (API major 1)**, with continued support for v1, v2 and v3.
-V4 adds a dedicated tools workspace with live stream and GPU diagnostic panels,
-available from Home and the stream overlay. See the
-[v4 specification](docs/manifest-v4.md) and
-[Stream Inspector example](examples/stream-inspector/plugin.json).
-Plugins can display cards, open HTTPS links, navigate to approved settings
-screens, offer credential-free RTMPS ingest templates and declare static
-in-app event toasts. The SDK does not execute scripts, native libraries or
-downloaded code.
+**Current format: v5 (API major 2)**, with continued support for v1–v4.
+V5 adds the first executable format, modelled on MemDBG's script plugins: a
+plugin embeds Lua in its reviewed manifest and the host runs it in a sandbox
+with only the approved host APIs. See the
+[v5 specification](docs/manifest-v5.md),
+[Lua host API reference](docs/lua-api.md) and
+[script panel example](examples/script-panel/plugin.json).
+V4 remains current for declarative plugins and adds a dedicated tools workspace
+with live stream and GPU diagnostic panels. Declarative plugins can display
+cards, open HTTPS links, navigate to approved settings screens, offer
+credential-free RTMPS ingest templates and declare static in-app event toasts.
+The SDK still never ships or loads native libraries, scripts from disk or
+downloaded code: v5 source travels inside the hashed manifest.
 
 ## Create a plugin
 
@@ -42,28 +46,38 @@ JSON output but does not run scripts or native code.
 
 ### Author a manifest directly
 
-1. Start with the [v3 event notifications example](examples/event-notifications/plugin.json),
-   [v2 navigation and streaming example](examples/navigation-and-streaming/plugin.json)
-   or [v1 card example](examples/hello-world/plugin.json).
-2. Give your plugin a stable lowercase ID and update its metadata. For v3,
-   set schema = 3 and api_version = 1.
+1. Start with the [script panel example](examples/script-panel/plugin.json)
+   (executable, schema 5), the [v3 event notifications example](examples/event-notifications/plugin.json),
+   the [v2 navigation and streaming example](examples/navigation-and-streaming/plugin.json)
+   or the [v1 card example](examples/hello-world/plugin.json).
+2. Give your plugin a stable lowercase ID and update its metadata. A script
+   plugin needs schema = 5, api_version = 2, a `runtime` block and the
+   `runtime.script` permission.
 3. Validate the JSON and import it into PBS Studio. Review and approve the
-   requested permissions before enabling capabilities.
+   requested permissions before enabling capabilities. Script plugins show an
+   extra warning because their code runs inside PBS Studio.
 
 From the repository root:
 
     python -m pip install -r requirements-dev.txt
-    python scripts/validate.py examples/hello-world/plugin.json examples/navigation-and-streaming/plugin.json examples/event-notifications/plugin.json
+    python scripts/validate.py examples/script-panel/plugin.json examples/stream-inspector/plugin.json examples/hello-world/plugin.json examples/navigation-and-streaming/plugin.json examples/event-notifications/plugin.json
 
 The permissions **ui.cards** and **links.open** allow interactive cards.
 Version 2 adds **ui.actions** for bounded settings navigation and
 **stream.presets** for RTMPS ingest templates. PBS Studio controls grants,
 revocation and whether each plugin is enabled. Version 3 adds
-**ui.notifications** for static in-app event toasts (no startup toasts,
-native notifications, or scripts).
+**ui.notifications** for static in-app event toasts. Version 5 adds
+**runtime.script** plus the host APIs **api.host**, **api.store**, **api.ui**
+and **api.file**; the sandbox has no file system, process, network or native
+module access.
 
 ## Specifications
 
+- [V5 script runtime specification](docs/manifest-v5.md)
+- [V5 Lua host API reference](docs/lua-api.md)
+- [V5 versioned JSON schema](schemas/v5/plugin.schema.json)
+- [V5 script panel example](examples/script-panel/plugin.json)
+- [V4 tools workspace specification](docs/manifest-v4.md)
 - [V3 event notification specification](docs/manifest-v3.md)
 - [V3 versioned JSON schema](schemas/v3/plugin.schema.json)
 - [V3 event notifications example](examples/event-notifications/plugin.json)
