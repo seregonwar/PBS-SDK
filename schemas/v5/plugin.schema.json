@@ -1,0 +1,439 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/seregonwar/PBS-SDK/main/schemas/v5/plugin.schema.json",
+  "title": "PBS Studio plugin manifest, schema version 5",
+  "description": "Embedded, sandboxed Lua script with declared host permissions, compatible with script API major 2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "api_version",
+    "id",
+    "name",
+    "version",
+    "description",
+    "author",
+    "permissions",
+    "runtime"
+  ],
+  "properties": {
+    "schema": {
+      "const": 5
+    },
+    "api_version": {
+      "const": 2,
+      "description": "Script runtime API major 2."
+    },
+    "id": {
+      "$ref": "#/$defs/identifier"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)(?:-(?:(?:0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:(?:0|[1-9][0-9]*)|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?![\\s\\S])"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 512
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96
+    },
+    "permissions": {
+      "type": "array",
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "ui.cards",
+          "links.open",
+          "ui.actions",
+          "stream.presets",
+          "ui.notifications",
+          "tools.panels",
+          "runtime.script",
+          "api.host",
+          "api.store",
+          "api.ui",
+          "api.file"
+        ]
+      }
+    },
+    "runtime": {
+      "description": "The plugin's Lua source travels inside the reviewed manifest. No path or binary is named.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "language",
+        "source"
+      ],
+      "properties": {
+        "language": {
+          "const": "lua"
+        },
+        "api": {
+          "const": 2,
+          "description": "Optional explicit script API major; when present it must be 2."
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 49152,
+          "pattern": "^[^\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]*$",
+          "description": "UTF-8 Lua source, 1 byte to 48 KiB, without NUL or control characters other than tab, newline and carriage return."
+        }
+      }
+    },
+    "cards": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "$ref": "#/$defs/card"
+      }
+    },
+    "actions": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "presets": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/$defs/streamPreset"
+      }
+    },
+    "notifications": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/$defs/notification"
+      }
+    },
+    "panels": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "$ref": "#/$defs/toolPanel"
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*(?![\\s\\S])"
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "description",
+        "url",
+        "button_label"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 2048,
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "button_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "description",
+        "target"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "target": {
+          "enum": [
+            "open.settings.consoles",
+            "open.settings.playback",
+            "open.settings.streaming",
+            "open.settings.appearance"
+          ]
+        }
+      }
+    },
+    "notification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "event",
+        "title",
+        "message"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "event": {
+          "type": "string",
+          "enum": [
+            "console.connected",
+            "console.disconnected",
+            "broadcast.started",
+            "broadcast.stopped"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
+      }
+    },
+    "streamPreset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "url"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "url": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 512,
+          "format": "uri",
+          "pattern": "^rtmps://"
+        }
+      }
+    },
+    "toolPanel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "description",
+        "metrics"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "metrics": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "console.connected",
+              "stream.frames",
+              "stream.resolution",
+              "stream.decoder",
+              "stream.color",
+              "stream.enhancement_ms",
+              "broadcast.active",
+              "broadcast.frames",
+              "broadcast.dropped",
+              "graphics.device"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "cards": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "cards"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "allOf": [
+              {
+                "contains": {
+                  "const": "ui.cards"
+                }
+              },
+              {
+                "contains": {
+                  "const": "links.open"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "actions": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "actions"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "ui.actions"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "presets": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "presets"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "stream.presets"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "notifications": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "notifications"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "ui.notifications"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "panels": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "panels"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "tools.panels"
+            }
+          }
+        }
+      }
+    },
+    {
+      "then": {
+        "properties": {
+          "permissions": {
+            "contains": {
+              "const": "runtime.script"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

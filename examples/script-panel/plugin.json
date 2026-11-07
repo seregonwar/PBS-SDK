@@ -1,0 +1,20 @@
+{
+  "schema": 5,
+  "api_version": 2,
+  "id": "com.example.script-panel",
+  "name": "Script panel example",
+  "version": "1.0.0",
+  "description": "Small schema v5 example: reads a metric, remembers a setting and builds its own panel.",
+  "author": "PBS SDK",
+  "permissions": [
+    "runtime.script",
+    "api.host",
+    "api.store",
+    "api.ui"
+  ],
+  "runtime": {
+    "language": "lua",
+    "api": 2,
+    "source": "-- Minimal schema v5 plugin.\nlocal function state(key, fallback)\n  local value = pbs.store.get(key)\n  if value == nil then return fallback end\n  return value\nend\n\npbs.ui.panel(\"main\", \"Script panel\", function()\n  pbs.ui.metric(\"stream.resolution\", \"Stream\")\n  pbs.ui.metric(\"stream.decoder\", \"Decoder\")\n  local note = pbs.ui.input(\"note\", \"Your note\", state(\"note\", \"\"))\n  pbs.store.set(\"note\", note)\n  local clicks = state(\"clicks\", 0)\n  if pbs.ui.button(\"count\", \"Count one more\") then\n    clicks = clicks + 1\n    pbs.store.set(\"clicks\", clicks)\n    pbs.notify(\"Script panel\", \"Counted \" .. clicks)\n  end\n  pbs.ui.note(\"Button presses: \" .. clicks)\n  if pbs.ui.button(\"settings\", \"Open streaming settings\") then\n    pbs.navigate(\"open.settings.streaming\")\n  end\nend, \"A complete v5 example written in Lua\")\n"
+  }
+}

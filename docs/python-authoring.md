@@ -5,10 +5,11 @@ v3 manifests. Developers can organize a project into modules, test their
 configuration, conditionally assemble capabilities and generate deterministic
 installation files. The host accepts only the generated declarative JSON.
 
-**Python never runs inside PBS Studio.** This does not add scripting hooks,
-native code, OS notifications, access to session data, callbacks or stream
-keys. Runtime-programmable third-party code needs a separate, verified sandbox
-and is intentionally unsupported.
+**Python never runs inside PBS Studio.** Python here is a build-time tool that
+emits JSON. For runtime-programmable plugins, schema v5 embeds **Lua 5.4**
+source that the host runs in its sandboxed VM (see `manifest-v5.md` and
+`lua-api.md`); native code, library loading, OS notifications, session data,
+arbitrary callbacks and stream keys remain unsupported in every schema.
 
 ## Run the serious source example
 

@@ -1,9 +1,15 @@
 # Security model
 
 PBS Studio's plugin manifest formats **v1, v2 and v3 are data only**. They provide
-bounded user interface declarations. Plugins cannot execute native code,
-scripts, shell commands, arbitrary callbacks, downloaded libraries or
-background requests. The host retains control of every capability.
+bounded user interface declarations. Formats **v4 and v5 add an opt-in script
+runtime**: schema v5 carries Lua source text that the host runs in its own
+sandbox, and v4 remains a legacy declarative schema.
+
+No manifest of any version can execute native code, load a library, run shell
+commands, register arbitrary callbacks or make background requests. A v5
+script reaches the host only through the documented `pbs.*` API, and only for
+permissions the user granted; `os`, `io`, `require`, `package` and `dofile` are
+absent from the sandbox. Every capability stays with the host.
 
 ## Declared capabilities
 
@@ -14,6 +20,17 @@ background requests. The host retains control of every capability.
 | ui.actions | v2 and v3 | Navigate to one of four allowlisted settings screens |
 | stream.presets | v2 and v3 | Suggest credential-free RTMPS ingest endpoints |
 | ui.notifications | v3 only | Show static in-app toast text on four allowed host transitions |
+| runtime.script | v5 only | Run the manifest's Lua source in the sandboxed VM |
+| api.host | v5 only | Read stream metrics and open approved settings pages |
+| api.store | v5 only | Read and write the plugin's own capped settings store |
+| api.ui | v5 only | Build panels and show short notification text |
+| api.file | v5 only | Read size and SHA-256 of one absolute file path per probe |
+
+A v5 manifest is rejected unless it declares `runtime.script` together with a
+valid `runtime` object (language `lua`, `api` 2, nonempty source under 48 KiB),
+and each `pbs.*` namespace requires its permission. Script panels are budgeted:
+8 MiB VM, 2,000,000 instructions per call, 4 panels, 96 widgets per frame and an
+8 KiB store, with file probes limited to metadata reads.
 
 Nonempty cards require ui.cards and links.open together. Nonempty actions
 require ui.actions. Nonempty presets require stream.presets. Nonempty
